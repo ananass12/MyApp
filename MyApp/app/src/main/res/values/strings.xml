@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">MyApp</string>
-    <string name="name">Калькулятор</string>
+    <string name="name3">MP3 player</string>
+    <string name="name2">Калькулятор</string>
+    <string name="name1">Приложение</string>
     <string name="result_hint">Результат</string>
     <string name="number1_hint">Введите первое число</string>
     <string name="number2_hint">Введите второе число</string>
@@ -8,4 +10,6 @@
     <string name="minus_text">Вычесть</string>
     <string name="umnoj_text">Перемножить</string>
     <string name="del_text">Разделить</string>
+    <string name="back">Назад</string>
+
 </resources>
