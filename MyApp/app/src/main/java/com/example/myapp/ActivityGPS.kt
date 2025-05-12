@@ -83,8 +83,8 @@ class ActivityGPS : AppCompatActivity() {
                     if (location != null) {
                         Latitude.text = location.latitude.toString()
                         Longitude.text = location.longitude.toString()
-                        Time.text = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-                            .format(Date())
+                        Time.text = location.time.toString()
+                        //Time.text = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault().format(Date())
                         Accuracy.text = "${location.accuracy} метров"
                     } else {
                         Toast.makeText(this, "Не удалось получить местоположение", Toast.LENGTH_SHORT).show()
