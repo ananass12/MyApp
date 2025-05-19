@@ -23,6 +23,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.google.android.gms.location.Priority
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 
 class ActivityGPS : AppCompatActivity() {
 
@@ -33,7 +37,7 @@ class ActivityGPS : AppCompatActivity() {
     private val LOG_TAG: String = "LOCATION_ACTIVITY"
     private lateinit var buttonBack: Button
     private lateinit var buttonGetCoordinates: Button
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient  //клиент для работы с геолокацией от Google Play Services
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var Latitude: TextView
     private lateinit var Longitude: TextView
     private lateinit var Time: TextView
@@ -56,7 +60,7 @@ class ActivityGPS : AppCompatActivity() {
         Time = findViewById(R.id.time)
         Accuracy = findViewById(R.id.accuracy)
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this) //инициализация клиента геолокации
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         buttonGetCoordinates.setOnClickListener {
             getCurrentLocation()
@@ -83,9 +87,17 @@ class ActivityGPS : AppCompatActivity() {
                     if (location != null) {
                         Latitude.text = location.latitude.toString()
                         Longitude.text = location.longitude.toString()
-                        Time.text = location.time.toString()
-                        //Time.text = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault().format(Date())
-                        Accuracy.text = "${location.accuracy} метров"
+
+                        val millisecondsSince1970 = location.time
+                        val baseDate = Date(70, 0, 1)
+                        val resultDate = Date(baseDate.time + millisecondsSince1970)
+
+                        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm:ss", Locale.getDefault())
+                        val formattedTime = sdf.format(resultDate)
+                        Time.text = formattedTime
+
+                        val accuracyText = "${location.accuracy} метров"
+                        Accuracy.text = accuracyText
                     } else {
                         Toast.makeText(this, "Не удалось получить местоположение", Toast.LENGTH_SHORT).show()
                     }
@@ -102,7 +114,7 @@ class ActivityGPS : AppCompatActivity() {
     }
 
     private fun requestPermissions() {
-        Log.w(LOG_TAG, "Запрос разрешений")
+        Log.w(LOG_TAG, "Запрос разрешений на геолокацию")
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
@@ -125,7 +137,7 @@ class ActivityGPS : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_ACCESS_LOCATION) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) { //проверям что результат не пустой и разрешение предоставлено
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(applicationContext, "Разрешение предоставлено", Toast.LENGTH_SHORT).show()
                 getCurrentLocation()
             } else {
@@ -134,16 +146,16 @@ class ActivityGPS : AppCompatActivity() {
         }
     }
 
-    private fun isLocationEnabled(): Boolean {    //получаем сервис локации
+    private fun isLocationEnabled(): Boolean {
         val locationManager: LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
     override fun onResume() {
         super.onResume()
-        buttonBack.setOnClickListener({
+        buttonBack.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-        });
+        }
     }
 }
