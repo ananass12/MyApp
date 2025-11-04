@@ -80,7 +80,7 @@
         android:layout_height="54dp"
         android:text="Получить координаты"
         android:layout_marginStart="30sp"
-        android:layout_marginTop="40sp"
+        android:layout_marginTop="50sp"
         tools:layout_editor_absoluteX="27dp"
         android:textColor="@color/black"
         tools:layout_editor_absoluteY="411dp" />
@@ -90,7 +90,7 @@
         android:layout_width="358dp"
         android:layout_height="62dp"
         android:layout_marginStart="30sp"
-        android:layout_marginTop="30sp"
+        android:layout_marginTop="50sp"
         android:background="@color/light_pink"
         android:text="@string/back"
         android:textColor="@color/black"
