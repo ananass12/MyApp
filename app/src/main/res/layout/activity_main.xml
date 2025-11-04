@@ -44,4 +44,12 @@
         android:layout_marginTop="50sp"
         android:text="Координаты" />
 
+    <Button
+        android:id="@+id/button_socket"
+        android:layout_width="265dp"
+        android:layout_height="65dp"
+        android:layout_marginStart="60sp"
+        android:layout_marginTop="50sp"
+        android:text="Socket" />
+
 </LinearLayout>
