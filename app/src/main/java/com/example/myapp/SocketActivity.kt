@@ -57,7 +57,7 @@ class SocketActivity : AppCompatActivity() {
         requestPermissions()
 
         btnSend.setOnClickListener { if (!isConnected) startClient() }
-        btnUpdate.setOnClickListener {  }
+        btnUpdate.setOnClickListener { collectData() }
         btnWrite.setOnClickListener { startWriting() }
         btnStopWrite.setOnClickListener { stopWriting() }
     }
@@ -195,6 +195,34 @@ class SocketActivity : AppCompatActivity() {
         }
     }
 
+    private fun readOneLine(): String? {
+        val dir = getExternalFilesDir("MyAppLogs") ?: return null
+        val file = java.io.File(dir, "log.json")
+
+        if (!file.exists() || file.length() == 0L) return null
+
+        val lines = file.readLines()
+        if (lines.isEmpty()) return null
+
+        return lines.first()
+    }
+
+    private fun removeFirstLine() {
+        val dir = getExternalFilesDir("MyAppLogs") ?: return
+        val file = java.io.File(dir, "log.json")
+
+        if (!file.exists()) return
+
+        val lines = file.readLines()
+        if (lines.size <= 1) {
+            file.writeText("")
+            return
+        }
+
+        val newText = lines.drop(1).joinToString("\n")
+        file.writeText(newText)
+    }
+
     private fun startClient() {
         Thread {
             try {
@@ -205,7 +233,8 @@ class SocketActivity : AppCompatActivity() {
 
                 val context = ZContext()
                 val socket = context.createSocket(SocketType.REQ)
-                val address = "tcp://10.48.236.49:2222"
+                //val address = "tcp://10.48.236.49:2222"
+                val address = "tcp://10.147.163.49:2222"
 
                 socket.connect(address)
                 socket.setReceiveTimeOut(5000)
@@ -214,9 +243,14 @@ class SocketActivity : AppCompatActivity() {
                 runOnUiThread { tvStatus.text = "Статус: подключено" }
 
                 repeat(10) {
-                    val json = collectData()?.toString() ?: return@repeat
-                    socket.send(json.toByteArray(ZMQ.CHARSET), 0)
-                    socket.recv()
+                    val line = readOneLine() ?: return@repeat  //читаем 1 строку из файла
+                    socket.send(line.toByteArray(ZMQ.CHARSET), 0)
+
+                    val reply = socket.recv()
+                    if (reply != null) {
+                        removeFirstLine()  //удаляем только если сервер ответил
+                    }
+
                     Thread.sleep(1000)
                 }
 
