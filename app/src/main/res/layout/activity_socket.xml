@@ -1,51 +1,322 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#FFF">
 
-    <TextView
-        android:id="@+id/tvStatus"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Статус: Не подключено"
-        android:layout_marginTop="40sp"
-        android:textSize="16sp" />
-
-    <Button
-        android:id="@+id/SendToServer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40sp"
-        android:text="Запустить клиент" />
-
-    <Button
-        android:id="@+id/btnClearLog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Очистить логи" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Логи сообщений"
-        android:layout_marginTop="16dp" />
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="8dp">
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tvSockets"
+            android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="пока пусто\n"
-            android:background="@android:color/white"
-            android:padding="8dp"
-            android:textIsSelectable="true" />
+            android:text="Статус: Не подключено"
+            android:layout_marginTop="15dp"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-    </ScrollView>
+        <Button
+            android:id="@+id/SendToServer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Запустить клиент" />
 
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Геолокация"
+            android:layout_marginTop="15dp"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvLatitude"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="Широта" />
+
+            <TextView
+                android:id="@+id/znachLatitude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvLongitude"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="Долгота"  />
+
+            <TextView
+                android:id="@+id/znachLongitude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvAltitude"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="Долгота" />
+
+            <TextView
+                android:id="@+id/znachAltitude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="Время" />
+
+            <TextView
+                android:id="@+id/znachTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Мобильная сеть"
+            android:layout_marginTop="25dp"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvNetworkType"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="Тип сети" />
+
+            <TextView
+                android:id="@+id/znachNetworkType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvOperator"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="MCC/MNC (оператор)" />
+
+            <TextView
+                android:id="@+id/znachOperator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvLacTac"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="TAC/LAC (зона)" />
+
+            <TextView
+                android:id="@+id/znachLacTac"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvPci"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="PCI (канал)" />
+
+            <TextView
+                android:id="@+id/znachPci"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvCid"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="CID (ID соты)" />
+
+            <TextView
+                android:id="@+id/znachCid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvRsrp"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="RSRP (сигнал)" />
+
+            <TextView
+                android:id="@+id/znachRsrp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="20sp"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvAsu"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="0sp"
+                android:layout_marginTop="0dp"
+                android:text="ASU (уровень)" />
+
+            <TextView
+                android:id="@+id/znachAsu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="30sp"
+                android:hint="-----" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnUpdateAll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:text="Обновить данные" />
+
+        <Button
+            android:id="@+id/btnWrite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Начать запись данных в файл" />
+
+        <Button
+            android:id="@+id/btnStopWrite"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Остановить запись в файл" />
+
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

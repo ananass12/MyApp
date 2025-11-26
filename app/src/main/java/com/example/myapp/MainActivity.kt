@@ -62,7 +62,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d(log_tag, "onResume method")
-        // Убрана установка обработчиков из onResume
     }
 
     override fun onPause() {
