@@ -2,7 +2,6 @@ package com.example.myapp
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -45,7 +44,9 @@ class SocketActivity : AppCompatActivity() {
     private var isConnected = false
     private var messageCount = 0
     private var isWriting = false
-    private var writingThread: Thread? = null
+
+    private var lastLocation: Location? = null
+    private var locationCallback: com.google.android.gms.location.LocationCallback? = null
 
     private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
 
@@ -233,8 +234,8 @@ class SocketActivity : AppCompatActivity() {
 
                 val context = ZContext()
                 val socket = context.createSocket(SocketType.REQ)
-                //val address = "tcp://10.48.236.49:2222"
-                val address = "tcp://10.147.163.49:2222"
+                //val address = "tcp://192.168.1.103:2222"
+                val address = "tcp://10.112.106.49:2222"
 
                 socket.connect(address)
                 socket.setReceiveTimeOut(5000)
@@ -242,16 +243,18 @@ class SocketActivity : AppCompatActivity() {
 
                 runOnUiThread { tvStatus.text = "Статус: подключено" }
 
-                repeat(10) {
-                    val line = readOneLine() ?: return@repeat  //читаем 1 строку из файла
+                while (true) {
+                    val line = readOneLine() ?: break   //если строк нет
                     socket.send(line.toByteArray(ZMQ.CHARSET), 0)
 
                     val reply = socket.recv()
                     if (reply != null) {
-                        removeFirstLine()  //удаляем только если сервер ответил
+                        removeFirstLine()
+                    } else {
+                        Log.w(TAG, "Сервер не ответил на сообщение, пробуем следующую")
                     }
 
-                    Thread.sleep(1000)
+                    Thread.sleep(2000)
                 }
 
                 socket.close()
@@ -259,7 +262,7 @@ class SocketActivity : AppCompatActivity() {
                 isConnected = false
 
                 runOnUiThread {
-                    tvStatus.text = "Статус: отключено"
+                    tvStatus.text = "Статус: все строки отправлены"
                     btnSend.isEnabled = true
                 }
 
@@ -273,26 +276,82 @@ class SocketActivity : AppCompatActivity() {
         }.start()
     }
 
+    @SuppressLint("MissingPermission")
     private fun startWriting() {
         if (isWriting) return
+
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            tvStatus.text = "Нет разрешений на локацию"
+            return
+        }
+
         isWriting = true
-
-        tvStatus.text = "Статус: запись..."
         messageCount = 0
+        tvStatus.text = "Статус: запись..."
 
-        writingThread = Thread {
-            while (isWriting) {
-                val json = collectData()?.toString() ?: continue
-                writeToFile(json)
-                Thread.sleep(10_000)
+        locationCallback = object : com.google.android.gms.location.LocationCallback() {
+            override fun onLocationResult(result: com.google.android.gms.location.LocationResult) {
+                for (loc in result.locations) {
+                    if (lastLocation != null &&
+                        lastLocation!!.latitude == loc.latitude &&
+                        lastLocation!!.longitude == loc.longitude
+                    ) continue
+
+                    lastLocation = loc
+                    val json = buildJsonFromLocation(loc)
+                    writeToFile(json.toString())
+                }
             }
         }
-        writingThread!!.start()
+
+        val request = com.google.android.gms.location.LocationRequest.Builder(
+            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+            10_000L
+        )
+            .setMinUpdateDistanceMeters(1f)
+            .build()
+
+        fused.requestLocationUpdates(request, locationCallback!!, mainLooper)
+    }
+
+    private fun buildJsonFromLocation(loc: Location): JSONObject {
+        val root = JSONObject()
+
+        val locObj = JSONObject()
+        locObj.put("Latitude", loc.latitude)
+        locObj.put("Longitude", loc.longitude)
+        locObj.put("Altitude", loc.altitude)
+        locObj.put("Timestamp", System.currentTimeMillis())
+        root.put("Location", locObj)
+
+        val tele = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+        val cellsArr = JSONArray()
+        tele.allCellInfo?.forEach { ci ->
+            when (ci) {
+                is CellInfoLte -> cellsArr.put(buildLte(ci))
+                is CellInfoGsm -> cellsArr.put(buildGsm(ci))
+            }
+        }
+        root.put("CellInfo", cellsArr)
+
+        updateLocationUI(loc)
+        return root
     }
 
     private fun stopWriting() {
+        if (!isWriting) return
         isWriting = false
-        writingThread = null
+        locationCallback?.let { fused.removeLocationUpdates(it) }
+        locationCallback = null
+        lastLocation = null
         tvStatus.text = "Статус: запись остановлена"
     }
 
