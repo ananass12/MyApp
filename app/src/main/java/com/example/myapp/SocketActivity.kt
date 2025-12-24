@@ -21,19 +21,17 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class SocketActivity : AppCompatActivity() {
-
     private val TAG = "ZMQ_CLIENT"
+    private val SERVER_ADDRESS = "tcp://192.168.1.103:2222"
     private lateinit var tvStatus: TextView
     private lateinit var btnSend: Button
     private lateinit var btnUpdate: Button
     private lateinit var btnWrite: Button
     private lateinit var btnStopWrite: Button
-
     private lateinit var latVal: TextView
     private lateinit var lonVal: TextView
     private lateinit var altVal: TextView
     private lateinit var timeVal: TextView
-
     private lateinit var typeVal: TextView
     private lateinit var operVal: TextView
     private lateinit var tacVal: TextView
@@ -49,6 +47,14 @@ class SocketActivity : AppCompatActivity() {
     private var locationCallback: com.google.android.gms.location.LocationCallback? = null
 
     private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
+    private val telephonyManager by lazy { getSystemService(TELEPHONY_SERVICE) as TelephonyManager }
+    private val locationManager by lazy { getSystemService(LOCATION_SERVICE) as LocationManager }
+    private val dateFormatter by lazy {
+        SimpleDateFormat(
+            "dd/MM/yyyy HH:mm:ss",
+            Locale.getDefault()
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,38 +104,16 @@ class SocketActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun getLocation(): Location? {
-        val lm = getSystemService(LOCATION_SERVICE) as LocationManager
-        return lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        return locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
     }
 
     @SuppressLint("MissingPermission")
     private fun collectData(): JSONObject? {
         try {
-            val tele = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
             val loc = getLocation() ?: return null
-
             updateLocationUI(loc)
-
-            val root = JSONObject()
-            val locObj = JSONObject()
-
-            locObj.put("Latitude", loc.latitude)
-            locObj.put("Longitude", loc.longitude)
-            locObj.put("Altitude", loc.altitude)
-            locObj.put("Timestamp", System.currentTimeMillis())
-            root.put("Location", locObj)
-
-            val cellsArr = JSONArray()
-            tele.allCellInfo?.forEach { ci ->
-                when (ci) {
-                    is CellInfoLte -> cellsArr.put(buildLte(ci))
-                    is CellInfoGsm -> cellsArr.put(buildGsm(ci))
-                }
-            }
-
-            root.put("CellInfo", cellsArr)
-            return root
+            return buildJsonFromLocation(loc)
 
         } catch (e: Exception) {
             Log.e(TAG, "collectData", e)
@@ -137,50 +121,37 @@ class SocketActivity : AppCompatActivity() {
         }
     }
 
-    private fun buildLte(ci: CellInfoLte): JSONObject {
-        val d = JSONObject()
-
-        val id = ci.cellIdentity
-        val s = ci.cellSignalStrength
-
-        d.put("type", "LTE")
-        d.put("MCC", id.mcc)
-        d.put("MNC", id.mnc)
-        d.put("PCI", id.pci)
-        d.put("TAC", id.tac)
-        d.put("CI", id.ci)
-        d.put("RSRP", s.rsrp)
-        d.put("ASU", s.asuLevel)
-
-        updateNetworkUI(d)
-        return d
+    private fun createLteJson(cellInfo: CellInfoLte): JSONObject {
+        return JSONObject().apply {
+            put("type", "LTE")
+            put("MCC", cellInfo.cellIdentity.mcc)
+            put("MNC", cellInfo.cellIdentity.mnc)
+            put("PCI", cellInfo.cellIdentity.pci)
+            put("TAC", cellInfo.cellIdentity.tac)
+            put("CI", cellInfo.cellIdentity.ci)
+            put("RSRP", cellInfo.cellSignalStrength.rsrp)
+            put("ASU", cellInfo.cellSignalStrength.asuLevel)
+        }
     }
 
-    private fun buildGsm(ci: CellInfoGsm): JSONObject {
-        val d = JSONObject()
-
-        val id = ci.cellIdentity
-        val s = ci.cellSignalStrength
-
-        d.put("type", "GSM")
-        d.put("MCC", id.mcc)
-        d.put("MNC", id.mnc)
-        d.put("LAC", id.lac)
-        d.put("CID", id.cid)
-        d.put("ASU", s.asuLevel)
-        d.put("Dbm", s.dbm)
-
-        updateNetworkUI(d)
-        return d
+    private fun createGsmJson(cellInfo: CellInfoGsm): JSONObject {
+        return JSONObject().apply {
+            put("type", "GSM")
+            put("MCC", cellInfo.cellIdentity.mcc)
+            put("MNC", cellInfo.cellIdentity.mnc)
+            put("LAC", cellInfo.cellIdentity.lac)
+            put("CI", cellInfo.cellIdentity.cid)
+            put("ASU", cellInfo.cellSignalStrength.asuLevel)
+            put("Dbm", cellInfo.cellSignalStrength.dbm)
+        }
     }
 
     private fun updateLocationUI(loc: Location) {
-        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
         runOnUiThread {
             latVal.text = loc.latitude.toString()
             lonVal.text = loc.longitude.toString()
             altVal.text = loc.altitude.toString()
-            timeVal.text = sdf.format(Date())
+            timeVal.text = dateFormatter.format(Date())
         }
     }
 
@@ -234,10 +205,8 @@ class SocketActivity : AppCompatActivity() {
 
                 val context = ZContext()
                 val socket = context.createSocket(SocketType.REQ)
-                //val address = "tcp://192.168.1.103:2222"
-                val address = "tcp://10.112.106.49:2222"
 
-                socket.connect(address)
+                socket.connect(SERVER_ADDRESS)
                 socket.setReceiveTimeOut(5000)
                 isConnected = true
 
@@ -251,7 +220,7 @@ class SocketActivity : AppCompatActivity() {
                     if (reply != null) {
                         removeFirstLine()
                     } else {
-                        Log.w(TAG, "Сервер не ответил на сообщение, пробуем следующую")
+                        Log.w(TAG, "Сервер не ответил на сообщение")
                     }
 
                     Thread.sleep(2000)
@@ -322,6 +291,7 @@ class SocketActivity : AppCompatActivity() {
         fused.requestLocationUpdates(request, locationCallback!!, mainLooper)
     }
 
+    @SuppressLint("MissingPermission")
     private fun buildJsonFromLocation(loc: Location): JSONObject {
         val root = JSONObject()
 
@@ -332,12 +302,19 @@ class SocketActivity : AppCompatActivity() {
         locObj.put("Timestamp", System.currentTimeMillis())
         root.put("Location", locObj)
 
-        val tele = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
         val cellsArr = JSONArray()
-        tele.allCellInfo?.forEach { ci ->
+        telephonyManager.allCellInfo?.forEach { ci ->
             when (ci) {
-                is CellInfoLte -> cellsArr.put(buildLte(ci))
-                is CellInfoGsm -> cellsArr.put(buildGsm(ci))
+                is CellInfoLte -> {
+                    val cellJson = createLteJson(ci)
+                    cellsArr.put(cellJson)
+                    updateNetworkUI(cellJson)
+                }
+                is CellInfoGsm -> {
+                    val cellJson = createGsmJson(ci)
+                    cellsArr.put(cellJson)
+                    updateNetworkUI(cellJson)
+                }
             }
         }
         root.put("CellInfo", cellsArr)
@@ -365,9 +342,7 @@ class SocketActivity : AppCompatActivity() {
 
             file.appendText("$text\n")
 
-            runOnUiThread {
-                tvStatus.text = "Статус: записано $messageCount строк"
-            }
+            runOnUiThread { tvStatus.text = "Статус: записано $messageCount строк" }
 
         } catch (e: Exception) {
             Log.e(TAG, "writeToFile", e)

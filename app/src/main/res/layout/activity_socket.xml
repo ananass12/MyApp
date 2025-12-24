@@ -317,6 +317,5 @@
             android:layout_marginTop="10dp"
             android:text="Остановить запись в файл" />
 
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
