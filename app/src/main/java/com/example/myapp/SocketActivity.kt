@@ -109,16 +109,23 @@ class SocketActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun collectData(): JSONObject? {
-        try {
-            val loc = getLocation() ?: return null
-            updateLocationUI(loc)
-            return buildJsonFromLocation(loc)
-
-        } catch (e: Exception) {
-            Log.e(TAG, "collectData", e)
-            return null
+    private fun collectData() {
+        val loc = getLocation()
+        if (loc == null) {
+            tvStatus.text = "Нет данных о местоположении"
+            return
         }
+
+        updateLocationUI(loc)
+
+        telephonyManager.allCellInfo?.firstOrNull()?.let { ci ->
+            when (ci) {
+                is CellInfoLte -> updateNetworkUI(createLteJson(ci))
+                is CellInfoGsm -> updateNetworkUI(createGsmJson(ci))
+            }
+        }
+
+        tvStatus.text = "Данные обновлены"
     }
 
     private fun createLteJson(cellInfo: CellInfoLte): JSONObject {
